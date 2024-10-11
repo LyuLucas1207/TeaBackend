@@ -1,0 +1,10 @@
+/node_modules
+/build
+/dist
+/dockerLog
+
+ssl.crt
+ssl.key
+
+/server/admin
+/server/data
