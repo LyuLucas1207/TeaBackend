@@ -1,6 +1,8 @@
-const { getProjectsData, login, checkIdentity, signup, emailVertify, getUserInfo, update } = require('./memberService'); // 引入项目数据、用户数据和身份验证的服务模块
+const { login, checkIdentity, signup, emailVertify, getUserInfo, update } = require('./memberService'); // 引入项目数据、用户数据和身份验证的服务模块
+const { addStaff } = require('./staffService'); // 引入项目数据、用户数据和身份验证的服务模块
+const { addTea } = require('./resourceService'); // 引入项目数据、用户数据和身份验证的服务模块
 const fs = require('fs');
-const { sendResponse } = require('./utility'); // 引入状态码定义函数
+const { parseMultipartData, sendResponse } = require('./utility'); // 引入状态码定义函数
 
 // 处理 HTTP 请求的主函数
 function handleRequest(req, res) {
@@ -29,57 +31,77 @@ function handleRequest(req, res) {
 
     console.log('请求方法:', req.method, '请求路径:', req.url);
 
-    // 处理 OPTIONS 请求，这是浏览器在执行 POST 请求前会发出的预检请求，通常用于跨域请求的安全检查
     if (req.method === 'OPTIONS') {
         sendResponse(res, 204, 1); // 返回 204 No Content 状态码
         return;
     }
 
-    // 处理 POST 请求，根据不同的 action 来分发处理逻辑
     if (req.method === 'POST' && req.url === '/') {
-        let body = '';
+        const contentType = req.headers['content-type'] || '';
 
-        // 收集 POST 请求体中的数据块
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });
-
-        req.on('end', () => {
-            const requestData = JSON.parse(body);
-            console.log('收到的数据:', requestData);
-            if (requestData.action === 'checkIdentity') {
-                checkIdentity(req, res);
-            } else if (requestData.action === 'getUserInfo') {
-                getUserInfo(req, res);
-            } else if (requestData.action === 'update') {
-                const { originalEmail, firstName, lastName, phoneNumber, email, password, emailcode } = requestData;
-                if (!originalEmail || !firstName || !lastName || !phoneNumber  || !email || !password || !emailcode) {
-                    sendResponse(res, 400, 2);
+        if (contentType.includes('multipart/form-data')) {
+            const boundary = contentType.split('boundary=')[1];
+            parseMultipartData(req, boundary, (error, requestData) => {
+                if (error) {
+                    console.error('解析错误:', error);
+                    sendResponse(res, 400, 3);
                     return;
                 }
-                update(req, res, originalEmail, firstName, lastName, phoneNumber, email, password, emailcode)
-            } else if (requestData.action === 'getProjects') {
-                getProjectsData(req, res);
-            } else if (requestData.action === 'login') {
-                const { email, password } = requestData; // 从请求体中提取 email 和 password
-                login(res, email, password);       // 验证用户
-            } else if (requestData.action === 'signup') {
-                const { firstName, lastName, phoneNumber, email, password, inviteCode, emailcode } = requestData; // 从请求体中提取用户注册信息
-                if (!firstName || !lastName || !phoneNumber  || !email || !password || !inviteCode || !emailcode) {
-                    sendResponse(res, 400, 2); // 返回 400 Bad Request 状态码
-                    return;
+                console.log('收到的 multipart 数据:', requestData);
+                dealingWithRequest(req, res, requestData);
+            });
+        } else if (contentType.includes('application/json')) {
+            let body = '';
+            req.on('data', (chunk) => (body += chunk.toString()));
+            req.on('end', () => {
+                try {
+                    const requestData = JSON.parse(body);
+                    console.log('收到的 JSON 数据:', requestData);
+                    dealingWithRequest(req, res, requestData);
+                } catch (error) {
+                    console.error('JSON 解析错误:', error);
+                    sendResponse(res, 400, 4);
                 }
-                signup(res, firstName, lastName, phoneNumber, email, password, inviteCode, emailcode); // 注册用户
-            } else if (requestData.action === 'emailVertify') {
-                const { email } = requestData; // 从请求体中提取 email
-                emailVertify(res, email); // 验证邮箱
-            } else {
-                sendResponse(res, 400, 1); // 返回 400 Bad Request 状态码
-            }
-        });
+            });
+        } else {
+            sendResponse(res, 415, 1);
+        }
     } else {
         sendResponse(res, 404, 1); // 返回 404 Not Found 状态码
     }
 }
 
-module.exports = { handleRequest }; // 导出 handleRequest 函数，供其他模块使用
+async function dealingWithRequest(req, res, requestData) {
+    dealingWithFlagRequest(req, res, requestData);
+    if (res.headersSent) return;
+    if (requestData.action === 'checkIdentity') await checkIdentity(req, res);
+    else if (requestData.action === 'getUserInfo') await getUserInfo(req, res);
+    else if (requestData.action === 'update') await update(res, requestData);
+    else if (requestData.action === 'login') await login(res, requestData);
+    else if (requestData.action === 'signup') await signup(res, requestData);
+    else if (requestData.action === 'emailVertify') await emailVertify(res, requestData);
+    else sendResponse(res, 400, 1); 
+}
+
+async function dealingWithFlagRequest(req, res, requestData) {
+    if (!requestData.fields) return;
+    if (!requestData.fields.flag) return;
+    const flag = requestData.fields.flag.toLowerCase(); 
+    if (flag === 'staff') await dealingWithStaffRequest(req, res, requestData);
+    else if (flag === 'tea') await dealingWithTeaRequest(req, res, requestData);
+    else console.log('未知的 flag:', flag);
+}
+
+
+async function dealingWithStaffRequest(req, res, requestData) {
+    if (requestData.fields.action === 'addStaff') await addStaff(req, res, requestData);
+    else console.log('no such staff action');
+}
+
+async function dealingWithTeaRequest(req, res, requestData) {
+    if (requestData.fields.action === 'addTea') await addTea(req, res, requestData);
+    else console.log('no such Tea action');
+}
+
+module.exports = { handleRequest };
+

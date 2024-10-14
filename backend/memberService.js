@@ -115,9 +115,14 @@ function getProjectsData(req, res) {
     });
 }
 
-async function login(res, email, password) {
+async function login(res, requestData) {
     const memberRecord = path.join(__dirname, '../server/admin/baseInfo.json');
     try {
+        const { email, password } = requestData;
+        if (!email || !password) {
+            sendResponse(res, 400, 2, headers);
+            return;
+        }
         const memberExists = await readUserInfo(memberRecord, email);
         if (!memberExists) {
             sendResponse(res, 200, 3, headers);
@@ -153,8 +158,13 @@ async function login(res, email, password) {
     }
 }
 
-async function signup(res, firstName, lastName, phoneNumber, email, password, inviteCode, emailcode) {
+async function signup(res, requestData) {
     try {
+        const { firstName, lastName, phoneNumber, email, password, inviteCode, emailcode } = requestData; // 从请求体中提取用户注册信息
+        if (!firstName || !lastName || !phoneNumber || !email || !password || !inviteCode || !emailcode) {
+            sendResponse(res, 400, 2); // 返回 400 Bad Request 状态码
+            return;
+        }
         let emailVertify = vertifyMixedCode(email, emailcode);
         switch (emailVertify) {
             case 4:
@@ -217,7 +227,13 @@ async function signup(res, firstName, lastName, phoneNumber, email, password, in
     }
 }
 
-async function emailVertify(res, email) {
+async function emailVertify(res, requestData) {
+    const { email } = requestData;
+    if (!email) {
+        sendResponse(res, 400, 2, headers);
+        return;
+    }
+
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -303,12 +319,17 @@ function vertifyMixedCode(email, code) {
     return 0;
 }
 
-async function update(req, res, originalEmail, firstName, lastName, phoneNumber, email, password, emailcode) {
+async function update(res, requestData) {
     // 找到是否存在该用户
     const memberRecord = path.join(__dirname, '../server/admin/baseInfo.json');
 
     try {
         // 检查用户是否存在
+        const { originalEmail, firstName, lastName, phoneNumber, email, password, emailcode } = requestData;
+        if (!originalEmail || !firstName || !lastName || !phoneNumber || !email || !password || !emailcode) {
+            sendResponse(res, 400, 2);
+            return;
+        }
         const memberExists = await readUserInfo(memberRecord, originalEmail);
         if (!memberExists) {
             sendResponse(res, 200, 4, headers);

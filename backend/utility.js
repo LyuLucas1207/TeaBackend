@@ -1,6 +1,50 @@
 const jwt = require('jsonwebtoken'); // 引入 jsonwebtoken 库
 const path = require('path');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid'); // 用于生成唯一文件名
+
+const iconv = require('iconv-lite'); // 引入 iconv-lite
+
+function parseMultipartData(req, boundary, callback) {
+    let body = '';
+
+    req.on('data', (chunk) => {
+        body += chunk.toString('binary'); // 使用 binary 保持原始数据
+    });
+
+    req.on('end', () => {
+        const parts = body.split(`--${boundary}`).filter((part) => part.trim() !== '' && part.trim() !== '--');
+        const fields = {};
+        const files = {};
+
+        parts.forEach((part) => {
+            const [header, content] = part.split('\r\n\r\n');
+            const nameMatch = header.match(/name="([^"]+)"/);
+            const filenameMatch = header.match(/filename="([^"]+)"/);
+            let value = content?.trimEnd(); // 移除尾部空白
+
+            if (filenameMatch) {
+                const buffer = Buffer.from(value, 'binary'); // 将文件内容转为 Buffer
+                const filename = `${uuidv4()}${path.extname(filenameMatch[1])}`;
+                files[nameMatch[1]] = { filename, data: buffer };
+            } else if (nameMatch) {
+                // 关键部分：将字段从 binary 转为 UTF-8
+                value = iconv.decode(Buffer.from(value, 'binary'), 'utf-8');
+                fields[nameMatch[1]] = value;
+            }
+        });
+
+        callback(null, { fields, files });
+    });
+
+    req.on('error', (error) => {
+        callback(error);
+    });
+}
+
+
+
+
 
 function codeDefine(status, code, data = null) {
     // 定义状态码和消息
@@ -12,7 +56,8 @@ function codeDefine(status, code, data = null) {
             3: '邮箱不存在',
             4: '无法确认的信息异常, 请联系管理员, 你是不是在乱搞啊',
             5: '身份验证成功',
-            6: '验证码发送成功'
+            6: '验证码发送成功',
+            7: '信息存入成功',
         },
         201: {
             0: '用户成功注册',
@@ -22,11 +67,14 @@ function codeDefine(status, code, data = null) {
         },
         500: {
             1: '未知错误',
-            2: '无法读取文件'
+            2: '无法读取文件',
+            3: '添加信息失败'
         },
         400: {
             1: '未知的操作',
             2: '所有字段都是必填的',
+            3: '请求解析失败',
+            4: 'JSON 格式错误'
         },
         401: {
             1: '未提供 token',
@@ -44,6 +92,10 @@ function codeDefine(status, code, data = null) {
         409: {
             1: '邮箱已被注册',
             2: '邀请码错误',
+            3: '信息已存在',
+        },
+        415: {
+            1: '不支持的媒体类型',
         },
         999: {
             0: '前所未有的错误'
@@ -249,6 +301,7 @@ async function getHtmlEmailTemplate(filePath, code, imagePath) {
 
 
 module.exports = {
+    parseMultipartData,
     codeDefine,
     sendResponse,
     verifyToken,
