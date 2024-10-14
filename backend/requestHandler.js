@@ -1,5 +1,5 @@
 const { login, checkIdentity, signup, emailVertify, getUserInfo, update } = require('./memberService'); // 引入项目数据、用户数据和身份验证的服务模块
-const { addStaff } = require('./staffService'); // 引入项目数据、用户数据和身份验证的服务模块
+const { addStaff, allStaff, deleteStaff } = require('./staffService'); // 引入项目数据、用户数据和身份验证的服务模块
 const { addTea } = require('./resourceService'); // 引入项目数据、用户数据和身份验证的服务模块
 const fs = require('fs');
 const { parseMultipartData, sendResponse } = require('./utility'); // 引入状态码定义函数
@@ -95,6 +95,8 @@ async function dealingWithFlagRequest(req, res, requestData) {
 
 async function dealingWithStaffRequest(req, res, requestData) {
     if (requestData.fields.action === 'addStaff') await addStaff(req, res, requestData);
+    else if (requestData.fields.action === 'deleteStaff') await deleteStaff(req, res, requestData);
+    else if (requestData.fields.action === '/AllStaff') await allStaff(req, res, requestData);
     else console.log('no such staff action');
 }
 

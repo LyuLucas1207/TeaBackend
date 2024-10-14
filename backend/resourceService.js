@@ -46,7 +46,7 @@ async function addTea(req, res, requestData) {
         }
 
         // 确保主分类和子分类的文件夹存在
-        const categoryFolder = path.join(__dirname, `../server/data/resources/tea/${category}_tea`);
+        const categoryFolder = path.join(`./server/data/resources/tea/${category}_tea`);
         const subcategoryFolder = path.join(categoryFolder, `${subcategory}_tea`);
         ensureDirectoryExists(subcategoryFolder);
 
@@ -65,7 +65,7 @@ async function addTea(req, res, requestData) {
 
         // 保存图片
         const imageUUID = `${uuidv4()}${path.extname(imageFile.filename)}`;
-        const imagePath = path.join(__dirname, `../server/data/images/tea/${category}_tea`, imageUUID);
+        const imagePath = path.join(`./server/data/images/tea/${category}_tea`, imageUUID);
         ensureDirectoryExists(path.dirname(imagePath));
         fs.writeFileSync(imagePath, imageFile.data);
 
