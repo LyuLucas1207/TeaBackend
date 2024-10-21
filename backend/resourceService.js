@@ -4,10 +4,12 @@ const { v4: uuidv4 } = require('uuid');
 const { sendResponse } = require('./utility');
 const { verifyToken } = require('./memberService');
 const { getConfig, loadConfig } = require('./init');
+const { console } = require('inspector');
 
 loadConfig();
 const config = getConfig();
 const SECRET_KEY = config.SECRET_KEY;
+const headers = config.headers;
 
 // 确保目录存在
 function ensureDirectoryExists(dir) {
@@ -24,6 +26,7 @@ function deleteFile(filePath) {
 }
 
 async function addTea(req, res, requestData) {
+    console.log('this is addTea');
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
         return sendResponse(res, 401, 1);
@@ -92,4 +95,191 @@ async function addTea(req, res, requestData) {
     }
 }
 
-module.exports = { addTea };
+async function allTea(req, res) {
+    console.log('this is allTea');
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+        return sendResponse(res, 401, 1);
+    }
+
+    const token = authHeader.split(' ')[1];
+    const verified = verifyToken(token, SECRET_KEY);
+    if (!verified) {
+        return sendResponse(res, 403, 1);
+    }
+
+    try {
+        const teaDirectoryPath = path.join(__dirname, '../server/data/resources/tea');
+        let allTeaData = {};
+
+        // Function to recursively read subdirectories
+        function readDirectory(dirPath) {
+            const filesAndDirs = fs.readdirSync(dirPath);
+
+            filesAndDirs.forEach(fileOrDir => {
+                const fullPath = path.join(dirPath, fileOrDir);
+                const stat = fs.statSync(fullPath);
+
+                if (stat.isDirectory()) {
+                    // Recursively read the subdirectory
+                    readDirectory(fullPath);
+                } else if (fileOrDir === 'tea.json') {
+                    // Read and parse the tea.json file
+                    const teaData = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
+
+                    // Merge the tea data into the result object
+                    Object.keys(teaData).forEach((id) => {
+                        const tea = teaData[id];
+                        allTeaData[id] = {
+                            ...tea,
+                            imageUrl: `/images/tea/${tea.category}_tea/${path.basename(tea.imagePath)}`
+                        };
+                    });
+                }
+            });
+        }
+        readDirectory(teaDirectoryPath);// Start reading from the main tea directory
+        sendResponse(res, 200, 8, headers, allTeaData);
+    } catch (error) {
+        console.error('获取茶叶时出错:', error);
+        sendResponse(res, 500, 1); // 服务器错误
+    }
+}
+
+const teaMap = {
+    'GreenTea': 'GreenTea_tea',
+    'RedTea': 'RedTea_tea',
+    'WhiteTea': 'WhiteTea_tea',
+    'YellowTea': 'YellowTea_tea',
+    'OolongTea': 'OolongTea_tea',
+    'DarkTea': 'DarkTea_tea',
+
+    'Longjing': '/GreenTea_tea/Longjing_tea',
+    'Biluochun': '/GreenTea_tea/Biluochun_tea',
+    'Maofeng': '/GreenTea_tea/Maofeng_tea',
+
+    'Auhua': '/DarkTea_tea/Auhua_tea',
+    'Liubao': '/DarkTea_tea/Liubao_tea',
+    'Puerh': '/DarkTea_tea/Puerh_tea',
+
+    'Dahongpao': '/OolongTea_tea/Dahongpao_tea',
+    'Shuixian': '/OolongTea_tea/Shuixian_tea',
+    'Tieguanyin': '/OolongTea_tea/Tieguanyin_tea',
+
+    'Dianhong': '/RedTea_tea/Dianhong_tea',
+    'Keemun': '/RedTea_tea/Keemun_tea',
+    "Lapsang": '/RedTea_tea/Lapsang_tea',
+
+    'Shoumei': '/WhiteTea_tea/Shoumei_tea',
+    'SilverNeedle': '/WhiteTea_tea/SilverNeedle_tea',
+    'WhitePeony': '/WhiteTea_tea/WhitePeony_tea',
+
+    'Junshan': '/YellowTea_tea/Junshan_tea',
+    'Huangshan': '/YellowTea_tea/Huangshan_tea',
+    'Mogan': '/YellowTea_tea/Mogan_tea',
+}
+
+
+//fields: { action: '/GetTea', flag: 'tea', name: 'Longjing' }
+async function getTea(req, res, requestData) {
+    console.log('this is getTea');
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+        return sendResponse(res, 401, 1);
+    }
+
+    const token = authHeader.split(' ')[1];
+    const verified = verifyToken(token, SECRET_KEY);
+    if (!verified) {
+        return sendResponse(res, 403, 1);
+    }
+    const name = requestData.fields.name;
+    if (!name) {
+        return sendResponse(res, 400, 2);
+    }
+
+    try {
+        const real_name = teaMap[name];
+        if (!real_name) {
+            return sendResponse(res, 404, 1);
+        }
+        const teaDirectoryPath = path.join(__dirname, '../server/data/resources/tea', real_name);
+        let allTeaData = {};
+
+        // Function to recursively read subdirectories
+        function readDirectory(dirPath) {
+            const filesAndDirs = fs.readdirSync(dirPath);
+
+            filesAndDirs.forEach(fileOrDir => {
+                const fullPath = path.join(dirPath, fileOrDir);
+                const stat = fs.statSync(fullPath);
+
+                if (stat.isDirectory()) {
+                    // Recursively read the subdirectory
+                    readDirectory(fullPath);
+                } else if (fileOrDir === 'tea.json') {
+                    // Read and parse the tea.json file
+                    const teaData = JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
+
+                    // Merge the tea data into the result object
+                    Object.keys(teaData).forEach((id) => {
+                        const tea = teaData[id];
+                        allTeaData[id] = {
+                            ...tea,
+                            imageUrl: `/images/tea/${tea.category}_tea/${path.basename(tea.imagePath)}`
+                        };
+                    });
+                }
+            });
+        }
+        readDirectory(teaDirectoryPath);// Start reading from the main tea directory
+        sendResponse(res, 200, 8, headers, allTeaData);
+    } catch (error) {
+        console.error('获取茶叶时出错:', error);
+        sendResponse(res, 500, 1); // 服务器错误
+    }
+}
+
+async function deleteTea(req, res, requestData) {
+    console.log('this is deleteTea');
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+        return sendResponse(res, 401, 1);
+    }
+
+    const token = authHeader.split(' ')[1];
+    const verified = verifyToken(token, SECRET_KEY);
+    if (!verified) {
+        return sendResponse(res, 403, 1);
+    }
+    const { category, subcategory, id } = requestData.fields;
+    if (!category || !subcategory || !id) {
+        return sendResponse(res, 400, 2);
+    }
+    try {
+        const TeaFilePath = path.join(__dirname, '../server/data/resources/tea', `${category}_tea`, `${subcategory}_tea`, 'tea.json');
+        console.log('TeaFilePath:', TeaFilePath);
+        if (!fs.existsSync(TeaFilePath)) {
+            return sendResponse(res, 404, 1);
+        }
+        const teaData = fs.readFileSync(TeaFilePath, 'utf-8');
+        const tea = teaData[id];
+        if (!tea) {
+            return sendResponse(res, 404, 1);
+        }
+        const imagePath = path.join(__dirname, '..', tea.imagePath);
+        console.log('删除茶叶图片:', imagePath);
+        deleteFile(imagePath);
+
+        delete teaData[id];
+        fs.writeFileSync(TeaFilePath, JSON.stringify(teaData, null, 2), 'utf-8');
+        sendResponse(res, 200, 10, headers);
+
+
+    } catch (error) {
+        console.error('删除茶叶时出错:', error);
+        sendResponse(res, 500, 1, headers);
+    }
+}
+
+module.exports = { addTea, allTea, getTea, deleteTea };

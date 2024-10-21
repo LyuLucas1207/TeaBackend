@@ -1,6 +1,6 @@
 const { login, checkIdentity, signup, emailVertify, getUserInfo, update } = require('./memberService'); // 引入项目数据、用户数据和身份验证的服务模块
 const { addStaff, allStaff, deleteStaff } = require('./staffService'); // 引入项目数据、用户数据和身份验证的服务模块
-const { addTea } = require('./resourceService'); // 引入项目数据、用户数据和身份验证的服务模块
+const { addTea, allTea, getTea, deleteTea } = require('./resourceService'); // 引入项目数据、用户数据和身份验证的服务模块
 const fs = require('fs');
 const { parseMultipartData, sendResponse } = require('./utility'); // 引入状态码定义函数
 
@@ -80,13 +80,16 @@ async function dealingWithRequest(req, res, requestData) {
     else if (requestData.action === 'login') await login(res, requestData);
     else if (requestData.action === 'signup') await signup(res, requestData);
     else if (requestData.action === 'emailVertify') await emailVertify(res, requestData);
-    else sendResponse(res, 400, 1); 
+    else sendResponse(res, 400, 1);
 }
 
 async function dealingWithFlagRequest(req, res, requestData) {
+    console.log('this is dealingWithFlagRequest');
     if (!requestData.fields) return;
+    console.log('has fields');
     if (!requestData.fields.flag) return;
-    const flag = requestData.fields.flag.toLowerCase(); 
+    console.log('has flag');
+    const flag = requestData.fields.flag.toLowerCase();
     if (flag === 'staff') await dealingWithStaffRequest(req, res, requestData);
     else if (flag === 'tea') await dealingWithTeaRequest(req, res, requestData);
     else console.log('未知的 flag:', flag);
@@ -96,13 +99,25 @@ async function dealingWithFlagRequest(req, res, requestData) {
 async function dealingWithStaffRequest(req, res, requestData) {
     if (requestData.fields.action === 'addStaff') await addStaff(req, res, requestData);
     else if (requestData.fields.action === 'deleteStaff') await deleteStaff(req, res, requestData);
-    else if (requestData.fields.action === '/AllStaff') await allStaff(req, res, requestData);
+    else if (requestData.fields.action === '/AllStaff') await allStaff(req, res);
     else console.log('no such staff action');
 }
 
 async function dealingWithTeaRequest(req, res, requestData) {
-    if (requestData.fields.action === 'addTea') await addTea(req, res, requestData);
-    else console.log('no such Tea action');
+    console.log('requestData.fields.action:', requestData.fields.action);
+
+    if (requestData.fields.action === 'addTea') {
+        await addTea(req, res, requestData);
+    } else if (requestData.fields.action === '/AllTea') {
+        await allTea(req, res, requestData);
+    } else if (requestData.fields.action === '/GetTea') {
+        await getTea(req, res, requestData);
+    } else if (requestData.fields.action === 'deleteTea') {
+        await deleteTea(req, res, requestData);
+    } else {
+        console.log('no such Tea action');
+        res.status(404).json({ code: 1, msg: '路径未找到', data: null });
+    }
 }
 
 module.exports = { handleRequest };
