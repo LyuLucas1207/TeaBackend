@@ -26,7 +26,6 @@ function deleteFile(filePath) {
 }
 
 async function addTea(req, res, requestData) {
-    console.log('this is addTea');
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
         return sendResponse(res, 401, 1);
@@ -96,7 +95,6 @@ async function addTea(req, res, requestData) {
 }
 
 async function allTea(req, res) {
-    console.log('this is allTea');
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
         return sendResponse(res, 401, 1);
@@ -182,7 +180,6 @@ const teaMap = {
 
 //fields: { action: '/GetTea', flag: 'tea', name: 'Longjing' }
 async function getTea(req, res, requestData) {
-    console.log('this is getTea');
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
         return sendResponse(res, 401, 1);
@@ -239,9 +236,7 @@ async function getTea(req, res, requestData) {
         sendResponse(res, 500, 1); // 服务器错误
     }
 }
-
 async function deleteTea(req, res, requestData) {
-    console.log('this is deleteTea');
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
         return sendResponse(res, 401, 1);
@@ -252,33 +247,43 @@ async function deleteTea(req, res, requestData) {
     if (!verified) {
         return sendResponse(res, 403, 1);
     }
+
     const { category, subcategory, id } = requestData.fields;
     if (!category || !subcategory || !id) {
-        return sendResponse(res, 400, 2);
+        return sendResponse(res, 400, 2);  // 缺少必要参数
     }
+
     try {
+        // 构造文件路径
         const TeaFilePath = path.join(__dirname, '../server/data/resources/tea', `${category}_tea`, `${subcategory}_tea`, 'tea.json');
-        console.log('TeaFilePath:', TeaFilePath);
+
+        // 检查文件是否存在
         if (!fs.existsSync(TeaFilePath)) {
+            console.log(`File not found: ${TeaFilePath}`);
             return sendResponse(res, 404, 1);
         }
-        const teaData = fs.readFileSync(TeaFilePath, 'utf-8');
+
+        // 读取并解析茶叶数据
+        const teaData = JSON.parse(fs.readFileSync(TeaFilePath, 'utf-8'));  // 修正: 解析 JSON 数据
         const tea = teaData[id];
         if (!tea) {
-            return sendResponse(res, 404, 1);
+            console.log(`Tea with ID ${id} not found`);
+            return sendResponse(res, 404, 1);  // 茶叶数据未找到
         }
+
+        // 删除茶叶图片
         const imagePath = path.join(__dirname, '..', tea.imagePath);
         console.log('删除茶叶图片:', imagePath);
         deleteFile(imagePath);
 
+        // 删除茶叶数据
         delete teaData[id];
-        fs.writeFileSync(TeaFilePath, JSON.stringify(teaData, null, 2), 'utf-8');
-        sendResponse(res, 200, 10, headers);
+        fs.writeFileSync(TeaFilePath, JSON.stringify(teaData, null, 2), 'utf-8');  // 修正: 写入更新后的 JSON
 
-
+        sendResponse(res, 200, 10);  // 成功删除茶叶
     } catch (error) {
         console.error('删除茶叶时出错:', error);
-        sendResponse(res, 500, 1, headers);
+        sendResponse(res, 500, 1);  // 返回服务器错误
     }
 }
 

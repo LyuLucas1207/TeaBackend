@@ -124,11 +124,6 @@ async function allStaff(req, res) {
     }
 }
 
-function deleteFile(filePath) {
-    if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath); // 删除文件
-    }
-}
 
 async function deleteStaff(req, res, requestData) {
     const authHeader = req.headers['authorization'];

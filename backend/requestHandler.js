@@ -84,11 +84,8 @@ async function dealingWithRequest(req, res, requestData) {
 }
 
 async function dealingWithFlagRequest(req, res, requestData) {
-    console.log('this is dealingWithFlagRequest');
     if (!requestData.fields) return;
-    console.log('has fields');
     if (!requestData.fields.flag) return;
-    console.log('has flag');
     const flag = requestData.fields.flag.toLowerCase();
     if (flag === 'staff') await dealingWithStaffRequest(req, res, requestData);
     else if (flag === 'tea') await dealingWithTeaRequest(req, res, requestData);
@@ -115,7 +112,6 @@ async function dealingWithTeaRequest(req, res, requestData) {
     } else if (requestData.fields.action === 'deleteTea') {
         await deleteTea(req, res, requestData);
     } else {
-        console.log('no such Tea action');
         res.status(404).json({ code: 1, msg: '路径未找到', data: null });
     }
 }
