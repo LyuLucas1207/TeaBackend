@@ -1,5 +1,5 @@
 # 使用官方 Node.js 为基础镜像
-FROM node:16
+FROM node
 
 # 设置工作目录
 WORKDIR /app
@@ -12,7 +12,7 @@ RUN npm install
 
 # # 复制所有项目文件到工作目录
 # COPY . .
-# replace with mount: sudo docker run -d -p 10002:10002 --name my-app -v /volume2/ProJData/PersonalData:/app my-backend-container
+# replace with mount: sudo docker run -d -p 10002:10002 --name my-tea -v /volume2/ProJData/TeaData:/app tea-container
 # 由于使用了挂载，所以不需要复制文件
 
 # 暴露端口 9999

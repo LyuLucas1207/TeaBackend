@@ -177,7 +177,5 @@ async function deleteStaff(req, res, requestData) {
     }
 }
 
-module.exports = { deleteStaff };
-
 
 module.exports = { addStaff, allStaff, deleteStaff };

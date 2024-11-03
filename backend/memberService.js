@@ -242,6 +242,8 @@ async function emailVertify(res, requestData) {
         },
     });
 
+    
+
     const emailcode = generateMixedCode(email, 6, 'easy');
 
     // 初始的 mailOptions，仅设置基本信息

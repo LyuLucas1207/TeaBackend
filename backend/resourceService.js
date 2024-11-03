@@ -156,7 +156,7 @@ const teaMap = {
     'Biluochun': '/GreenTea_tea/Biluochun_tea',
     'Maofeng': '/GreenTea_tea/Maofeng_tea',
 
-    'Auhua': '/DarkTea_tea/Auhua_tea',
+    'Anhua': '/DarkTea_tea/Anhua_tea',
     'Liubao': '/DarkTea_tea/Liubao_tea',
     'Puerh': '/DarkTea_tea/Puerh_tea',
 
