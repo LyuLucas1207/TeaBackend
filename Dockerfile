@@ -4,15 +4,15 @@ FROM node
 # 设置工作目录
 WORKDIR /app
 
-# 复制 package.json 和 package-lock.json
-COPY package*.json ./
+# # 复制 package.json 和 package-lock.json
+# COPY package*.json ./
 
-# 安装项目依赖
-RUN npm install
+# # 安装项目依赖
+# RUN npm install
 
 # # 复制所有项目文件到工作目录
 # COPY . .
-# replace with mount: sudo docker run -d -p 10002:10002 --name my-tea -v /volume2/ProJData/TeaData:/app tea-container
+# replace with mount: sudo docker run -d --network=host -p 10002:10002 --name my-tea -v /volume2/ProJData/TeaData:/app tea-container
 # 由于使用了挂载，所以不需要复制文件
 
 # 暴露端口 9999
