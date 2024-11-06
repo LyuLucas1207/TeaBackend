@@ -145,36 +145,44 @@ async function allTea(req, res) {
 }
 
 const teaMap = {
-    'GreenTea': 'GreenTea_tea',
+    // 'GreenTea': 'GreenTea_tea',
     'RedTea': 'RedTea_tea',
     'WhiteTea': 'WhiteTea_tea',
-    'YellowTea': 'YellowTea_tea',
-    'OolongTea': 'OolongTea_tea',
+    // 'YellowTea': 'YellowTea_tea',
+    // 'OolongTea': 'OolongTea_tea',
     'DarkTea': 'DarkTea_tea',
 
-    'Longjing': '/GreenTea_tea/Longjing_tea',
-    'Biluochun': '/GreenTea_tea/Biluochun_tea',
-    'Maofeng': '/GreenTea_tea/Maofeng_tea',
+    // 'Longjing': '/GreenTea_tea/Longjing_tea',
+    // 'Biluochun': '/GreenTea_tea/Biluochun_tea',
+    // 'Maofeng': '/GreenTea_tea/Maofeng_tea',
 
-    'Anhua': '/DarkTea_tea/Anhua_tea',
-    'Liubao': '/DarkTea_tea/Liubao_tea',
-    'Puerh': '/DarkTea_tea/Puerh_tea',
+    // 'Anhua': '/DarkTea_tea/Anhua_tea',
+    // 'Liubao': '/DarkTea_tea/Liubao_tea',
+    // 'Puerh': '/DarkTea_tea/Puerh_tea',
 
-    'Dahongpao': '/OolongTea_tea/Dahongpao_tea',
-    'Shuixian': '/OolongTea_tea/Shuixian_tea',
-    'Tieguanyin': '/OolongTea_tea/Tieguanyin_tea',
+    // 'Dahongpao': '/OolongTea_tea/Dahongpao_tea',
+    // 'Shuixian': '/OolongTea_tea/Shuixian_tea',
+    // 'Tieguanyin': '/OolongTea_tea/Tieguanyin_tea',
 
-    'Dianhong': '/RedTea_tea/Dianhong_tea',
-    'Keemun': '/RedTea_tea/Keemun_tea',
-    "Lapsang": '/RedTea_tea/Lapsang_tea',
+    // 'Dianhong': '/RedTea_tea/Dianhong_tea',
+    // 'Keemun': '/RedTea_tea/Keemun_tea',
+    // "Lapsang": '/RedTea_tea/Lapsang_tea',
 
-    'Shoumei': '/WhiteTea_tea/Shoumei_tea',
-    'SilverNeedle': '/WhiteTea_tea/SilverNeedle_tea',
-    'WhitePeony': '/WhiteTea_tea/WhitePeony_tea',
+    // 'Shoumei': '/WhiteTea_tea/Shoumei_tea',
+    // 'SilverNeedle': '/WhiteTea_tea/SilverNeedle_tea',
+    // 'WhitePeony': '/WhiteTea_tea/WhitePeony_tea',
 
-    'Junshan': '/YellowTea_tea/Junshan_tea',
-    'Huangshan': '/YellowTea_tea/Huangshan_tea',
-    'Mogan': '/YellowTea_tea/Mogan_tea',
+    // 'Junshan': '/YellowTea_tea/Junshan_tea',
+    // 'Huangshan': '/YellowTea_tea/Huangshan_tea',
+    // 'Mogan': '/YellowTea_tea/Mogan_tea',
+
+    'Gushu_red': '/RedTea_tea/Gushu_red_tea',
+    'Gushu_white': '/WhiteTea_tea/Gushu_white_tea',
+    'Puerh_raw': '/DarkTea_tea/Puerh_raw_tea',
+    'Puerh_ripe': '/DarkTea_tea/Puerh_ripe_tea',
+    'None': 'None_tea'
+
+
 }
 
 
@@ -197,6 +205,10 @@ async function getTea(req, res, requestData) {
 
     try {
         const real_name = teaMap[name];
+        if (real_name === 'None_tea') {
+            return sendResponse(res, 404, 1);
+        }
+
         if (!real_name) {
             return sendResponse(res, 404, 1);
         }
