@@ -95,16 +95,16 @@ async function addTea(req, res, requestData) {
 }
 
 async function allTea(req, res) {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-        return sendResponse(res, 401, 1);
-    }
+    // const authHeader = req.headers['authorization'];
+    // if (!authHeader) {
+    //     return sendResponse(res, 401, 1);
+    // }
 
-    const token = authHeader.split(' ')[1];
-    const verified = verifyToken(token, SECRET_KEY);
-    if (!verified) {
-        return sendResponse(res, 403, 1);
-    }
+    // const token = authHeader.split(' ')[1];
+    // const verified = verifyToken(token, SECRET_KEY);
+    // if (!verified) {
+    //     return sendResponse(res, 403, 1);
+    // }
 
     try {
         const teaDirectoryPath = path.join(__dirname, '../server/data/resources/tea');
@@ -193,11 +193,11 @@ async function getTea(req, res, requestData) {
         return sendResponse(res, 401, 1);
     }
 
-    const token = authHeader.split(' ')[1];
-    const verified = verifyToken(token, SECRET_KEY);
-    if (!verified) {
-        return sendResponse(res, 403, 1);
-    }
+    // const token = authHeader.split(' ')[1];
+    // const verified = verifyToken(token, SECRET_KEY);
+    // if (!verified) {
+    //     return sendResponse(res, 403, 1);
+    // }
     const name = requestData.fields.name;
     if (!name) {
         return sendResponse(res, 400, 2);
